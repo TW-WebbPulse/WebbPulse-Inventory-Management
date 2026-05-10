@@ -1,9 +1,12 @@
 name: Deploy on Merge to Master
 
+# Push trigger removed: this workflow is kept as a reference deploy pipeline
+# for the original WebbPulse-hosted instance. It depends on org-specific
+# secrets (Firebase, SendGrid, Android keystore, Apple App Store credentials)
+# that forks will not have. To re-enable for your own deployment, restore the
+# `push` trigger below and configure the required secrets in your repository.
 on:
-  push:
-    branches:
-      - master # Trigger on push to the main branch
+  workflow_dispatch:
 
 jobs:
   build_and_deploy_backend_and_web:
