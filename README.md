@@ -1,256 +1,207 @@
 # WebbPulse Inventory Management
 
-A comprehensive full-stack inventory management system built with Flutter and Firebase, designed for tracking device checkout status with advanced Verkada integration capabilities.
+A full-stack inventory management system built with Flutter and Firebase, designed for tracking device checkout status with optional Verkada Command integration.
 
-## 🌟 Features
+> Originally built to run at `inventory.webbpulse.com`. The codebase is published here under the MIT License so others can self-host, fork, or learn from it.
 
-### Core Inventory Management
-- **Device Check-in/Check-out**: Track device availability with real-time status updates
-- **Serial Number Tracking**: Manage devices by unique serial numbers
-- **Checkout Notes**: Add contextual notes when checking out devices
-- **Real-time Updates**: Live synchronization across all users
-- **Device History**: Track who checked out devices and when
+## Features
 
-### Organization Management
-- **Multi-Organization Support**: Users can belong to multiple organizations
-- **Role-Based Access Control**: Three distinct user roles:
-  - **Org Admin**: Full administrative privileges
-  - **Desk Station**: Can check out devices for other users
-  - **Org Member**: Standard user with basic checkout permissions
-- **User Management**: Add, remove, and manage organization members
-- **Organization Settings**: Customize device regex patterns and background images
+### Core inventory management
+- Device check-in / check-out with real-time status updates via Firestore
+- Tracking by unique serial numbers, with per-organization regex validation
+- Free-text checkout notes for context
+- Live multi-user synchronization
+- Per-device history of who checked out what, and when
+- CSV export of device lists
 
-### Verkada Integration
-- **Seamless Integration**: Connect with Verkada Command platform
-- **Device Synchronization**: Auto-sync Verkada devices (cameras, access controllers, sensors, etc.)
-- **Site Management**: Organize devices by Verkada sites
-- **User Group Whitelisting**: Control access through Verkada user groups
-- **Automated Cleanup**: Scheduled maintenance of Verkada device names and sites
-- **Permission Management**: Automated Verkada permission granting
+### Organizations and access control
+- Users can belong to multiple organizations simultaneously
+- Three roles, enforced via Firebase Auth custom claims and Firestore rules:
+  - **Org Admin** — full administrative privileges
+  - **Desk Station** — can check out devices on behalf of other users
+  - **Org Member** — self-service checkout for themselves
+- Admin tools for adding/removing members and changing roles
+- Per-org settings: device serial regex, background image
 
-### User Experience
-- **Cross-Platform**: Works on web, mobile, and desktop
-- **Responsive Design**: Optimized for all screen sizes
-- **Modern UI**: Material Design with custom styling
-- **Search & Filter**: Find devices and users quickly
-- **Export Capabilities**: CSV export functionality
+### Verkada Command integration (optional)
+- Sync Verkada device IDs, types, and sites into Firestore
+- Scheduled cleanup of Verkada device names and site assignments to reflect checkout status
+- User group whitelisting for permission management
+- Scheduled permission granting based on checkout state
+- Per-product site designations
 
-## 🏗️ Architecture
+### Other
+- Cross-platform Flutter client: web, iOS, Android, macOS, Windows, Linux
+- Email-based authentication with email verification (passwordless custom-token sign-in supported via SendGrid)
+- Per-function rate limiting for callable functions
+
+## Architecture
 
 ### Frontend (Flutter)
-- **Framework**: Flutter 3.3.0+
-- **State Management**: Provider pattern with ChangeNotifier
-- **Navigation**: Go Router for declarative routing
-- **Authentication**: Firebase Auth with Google/Apple sign-in
-- **UI Components**: Custom Material Design widgets
+- Flutter SDK `>=3.3.0 <4.0.0` (CI builds against Flutter 3.29.3)
+- State management: Provider with `ChangeNotifier`
+- Authentication: `firebase_ui_auth` with the email provider enabled. The Google and Apple sign-in packages are present in `pubspec.yaml` but are not currently wired into the auth provider list — see `flutter/lib/src/shared/authentication_provider_list.dart` if you want to enable them.
+- Navigation: `Navigator` with named routes (the `go_router` dependency is listed in `pubspec.yaml` but not currently used)
+- Firebase: `firebase_core`, `cloud_firestore`, `firebase_auth`, `cloud_functions`
 
 ### Backend (Firebase)
-- **Database**: Cloud Firestore for real-time data
-- **Authentication**: Firebase Auth with custom claims
-- **Functions**: Cloud Functions for server-side logic
-- **Security**: Firestore security rules with role-based access
+- **Firestore** for real-time data, with security rules in `firestore.rules`
+- **Firebase Auth** with custom claims of the form `org_admin_{orgId}`, `org_deskstation_{orgId}`, `org_member_{orgId}`
+- **Cloud Functions for Firebase (Python)** for callable, scheduled, and Firestore-triggered server logic
+- **Firebase Hosting** for the Flutter web build
 
-### Key Dependencies
-```yaml
-# Core
-flutter: ^3.3.0
-firebase_core: ^3.8.0
-cloud_firestore: ^5.5.0
-firebase_auth: ^5.3.3
+### Cloud Functions layout
+Entry points are wired up in `functions/main.py`. Functions are grouped by trigger type:
 
-# UI & Navigation
-go_router: ^14.2.0
-google_fonts: ^6.1.0
-provider: ^6.1.1
+- **Callable functions** under `functions/src/callable_functions/`
+  - `org_admin_callables/` — organization, user, device, and Verkada admin operations
+  - `org_member_callables/` — device creation, checkout status updates
+  - `global_user_callables/` — global user profile and organization creation
+- **Firestore-triggered functions** under `functions/src/firestore_triggered_functions/`
+  - `monitor_for_user_changes` — propagates user changes
+- **Scheduled functions** under `functions/src/scheduled_functions/verkada_integration/`
+  - Syncers: device IDs, site IDs, permissions
+  - Cleaners: device names, device sites, user list, user groups
 
-# Authentication
-firebase_ui_auth: ^1.13.0
-google_sign_in: ^6.2.1
-sign_in_with_apple: ^6.1.2
+Rate limits per callable function are configured in `functions/src/rate_limit_config.py` — see that file to tune buckets per function group.
 
-# Utilities
-rxdart: ^0.28.0
-intl: ^0.19.0
-csv: ^6.0.0
-```
+### Firestore data model
+- `users/{userId}` — global user profile (read-only from clients)
+- `usersMetadata/{userId}` — token revocation tracking (read-only from clients)
+- `organizations/{orgId}` — organization document
+  - `members/{userId}` — membership records
+  - `devices/{deviceId}` — inventory items
+  - `sensitiveConfigs/{configId}` — server-only config (e.g. `verkadaIntegrationSettings`); explicitly blocked from client reads in `firestore.rules`
 
-## 🚀 Getting Started
+All client writes are blocked at the Firestore rules layer. Mutations go through Cloud Functions, which enforce role and token-freshness checks.
+
+## Getting started
 
 ### Prerequisites
-- Flutter SDK 3.3.0 or higher
-- Firebase project with Firestore, Auth, and Functions enabled
-- Node.js and npm (for Firebase CLI)
-- Python 3.8+ (for Cloud Functions)
+- Flutter SDK `>=3.3.0` (CI uses 3.29.3)
+- Node.js + npm (for the Firebase CLI)
+- Python 3.13 (the deploy pipeline targets 3.13; older 3.x versions may work locally but are not tested)
+- A Firebase project with Firestore, Authentication, Cloud Functions, and Hosting enabled
+- Optional: a SendGrid account for transactional email
+- Optional: Verkada Command access for the integration features
 
-### Local Development Setup
+### Local setup
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/TW-WebbPulse/WebbPulse-Inventory-Management.git
    cd WebbPulse-Inventory-Management
    ```
 
-2. **Install Flutter dependencies**
+2. **Install Firebase CLI and log in**
+   ```bash
+   npm install -g firebase-tools
+   firebase login
+   ```
+
+3. **Point the project at your own Firebase project**
+   - Update `.firebaserc` with your Firebase project ID
+   - Re-run [FlutterFire CLI](https://firebase.google.com/docs/flutter/setup) to regenerate `flutter/lib/firebase_options.dart`, `flutter/android/app/google-services.json`, and `flutter/ios/Runner/GoogleService-Info.plist` for your project
+
+4. **Provide service-account credentials for local Cloud Functions**
+   - Download a service-account key from the Firebase / GCP console
+   - Place it at `functions/gcp_key.json` (already gitignored)
+   - This file is only needed for local emulator runs; deployed functions use the default service account
+
+5. **(Optional) SendGrid**
+   - Place your SendGrid API key at `functions/sendgrid_api_key.txt` (gitignored), or set `SENDGRID_API_KEY` in your environment
+
+6. **Install Flutter dependencies**
    ```bash
    cd flutter
    flutter pub get
    ```
 
-3. **Configure Firebase**
+7. **Run the Firebase emulators**
    ```bash
-   # Install Firebase CLI
-   npm install -g firebase-tools
-   
-   # Login to Firebase
-   firebase login
-   
-   # Initialize Firebase (if not already done)
-   firebase init
-   ```
-
-4. **Set up Firebase emulators**
-   ```bash
-   # Start Firebase emulators
    firebase emulators:start
    ```
+   The emulator suite runs Auth (9099), Functions (5001), Firestore (8080), and Pub/Sub (8085). The Flutter app automatically connects to the emulators in debug mode.
 
-5. **Configure environment variables**
-   - Place your Firebase service account key JSON in `functions/`
-   - Add SendGrid API key for email functionality
-
-6. **Run the application**
-   ```bash
-   # In debug mode, the app will automatically use emulators
-   flutter run
-   ```
-
-### Production Deployment
-
-1. **Deploy Firebase Functions**
-   ```bash
-   cd functions
-   firebase deploy --only functions
-   ```
-
-2. **Deploy Firestore Rules**
-   ```bash
-   firebase deploy --only firestore:rules
-   ```
-
-3. **Build and deploy Flutter app**
+8. **Run the app**
    ```bash
    cd flutter
-   flutter build web
-   # Deploy to your hosting platform
+   flutter run               # mobile / desktop
+   flutter run -d chrome     # web
    ```
 
-## 📱 Usage
+### Manual deployment
 
-### For Organization Admins
-1. **Create Organization**: Set up your organization with custom settings
-2. **Invite Members**: Add users via email invitations
-3. **Manage Roles**: Assign admin, desk station, or member roles
-4. **Configure Verkada**: Set up Verkada integration if needed
-5. **Monitor Activity**: Track device usage and user activity
+If you want to deploy your own instance:
 
-### For Desk Station Users
-1. **Check Out for Others**: Use the checkout interface to assign devices to users
-2. **Manage Inventory**: Add new devices and update existing ones
-3. **View Reports**: Access device status and usage reports
-
-### For Organization Members
-1. **Check Out Devices**: Self-service device checkout
-2. **Add Notes**: Include context when checking out devices
-3. **View History**: See your checkout history and current devices
-
-## 🔧 Configuration
-
-### Verkada Integration Setup
-1. Enable Verkada integration in organization settings
-2. Provide Verkada credentials:
-   - Organization Short Name
-   - Organization ID
-   - Bot User ID
-   - Bot V2 Token
-3. Configure site designations for different device types
-4. Set up user group whitelisting
-
-### Device Management
-- Configure device serial number regex patterns
-- Set up automatic device categorization
-- Enable/disable Verkada device synchronization
-
-## 🔒 Security
-
-### Authentication
-- Email verification required
-- Google/Apple OAuth support
-- Custom Firebase Auth claims for role management
-
-### Authorization
-- Role-based access control (RBAC)
-- Organization-scoped permissions
-- Firestore security rules enforcement
-
-### Data Protection
-- Sensitive configuration stored separately
-- Encrypted API keys and tokens
-- Audit logging for administrative actions
-
-## 🧪 Testing
-
-### Local Testing
 ```bash
-# Run Flutter tests
-cd flutter
-flutter test
+# Functions
+firebase deploy --only functions
 
-# Test Firebase Functions
-cd functions
-python -m pytest
+# Firestore rules and indexes
+firebase deploy --only firestore:rules,firestore:indexes
+
+# Web build + hosting
+cd flutter
+flutter build web
+cd ..
+firebase deploy --only hosting
 ```
 
-### Emulator Testing
-- Use Firebase emulators for local development
-- Test all functionality without affecting production data
-- Debug authentication and database operations
+### CI/CD pipeline (reference only)
 
-## 📊 Monitoring
+`.github/workflows/main-merge.yml` is included as a reference for the deploy pipeline used for the original `inventory.webbpulse.com` instance. It builds the web app, the Android app (Play Store internal track), and the iOS app (TestFlight), then deploys functions, rules, and hosting.
 
-### Firebase Console
-- Monitor function execution and errors
-- Track Firestore usage and performance
-- View authentication logs
+The workflow's `push` trigger has been removed — it now only runs via `workflow_dispatch`. It depends on org-specific secrets that forks will not have:
+- `FIREBASE_APPLICATION_CREDENTIALS` — service-account JSON
+- `SENDGRID_API_KEY`
+- Android signing: `KEYSTORE_FILE`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`, `PLAY_STORE_CONFIG_JSON`
+- Apple signing: `BUILD_CERTIFICATE_BASE64`, `P12_PASSWORD`, `BUILD_PROVISION_PROFILE_BASE64`, `KEYCHAIN_PASSWORD`, `APP_STORE_CONNECT_API_KEY_ID`, `APP_STORE_CONNECT_API_ISSUER_ID`, `APP_STORE_CONNECT_API_KEY_BASE64`
 
-### Application Metrics
-- Device checkout frequency
-- User activity patterns
-- Verkada integration status
+To re-use this workflow as your own deploy pipeline, restore the push trigger and supply the secrets above.
 
-## 🤝 Contributing
+## Verkada integration setup
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
+The Verkada integration is opt-in per organization. Once an org enables it:
 
-## 📄 License
+1. Org admin enables Verkada integration in the org settings UI
+2. The org provides Verkada bot credentials (org short name, org ID, bot user ID, bot v2 token), stored in `organizations/{orgId}/sensitiveConfigs/verkadaIntegrationSettings`. This document is read-only from clients and only accessible to Cloud Functions.
+3. Site designations and user-group whitelists can be configured via the admin UI
+4. Scheduled functions then sync devices and clean up Verkada state every 24 hours
+
+See `functions/src/helper_functions/verkada_integration/` and `functions/src/scheduled_functions/verkada_integration/` for the implementation details.
+
+## Security model
+
+- **Authentication.** Firebase Auth, with email verification required by Firestore rules. Custom claims encode org membership and role.
+- **Authorization.** Firestore rules block all client writes; reads are gated on authentication, email verification, recent token issuance, and an org-scoped custom claim. Server-side, callable functions re-check role and token freshness.
+- **Token revocation.** When a user's role changes or they're removed from an org, their refresh tokens are revoked and the new token-issuance time is recorded in `usersMetadata/{userId}`. Firestore rules reject reads using stale tokens.
+- **Sensitive config.** Per-org sensitive data (Verkada credentials, etc.) lives under `organizations/{orgId}/sensitiveConfigs/` which is explicitly excluded from the client-readable subcollection rule.
+- **Rate limiting.** Per-user and per-global buckets on callable functions, configured in `functions/src/rate_limit_config.py`.
+- **Public Firebase identifiers.** `firebase_options.dart`, `google-services.json`, and the web API key in those files are not secrets — they're public client identifiers protected by the auth and rules layers above. If you fork, you should still regenerate these for your own Firebase project.
+
+## Testing
+
+Flutter:
+```bash
+cd flutter
+flutter test
+```
+
+Cloud Functions: there is currently no Python test suite in `functions/`. PRs adding tests are welcome.
+
+End-to-end testing is best done against the Firebase emulators (see local setup, step 7).
+
+## Contributing
+
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, coding conventions, and PR process.
+
+For bug reports and feature requests, please use the GitHub issue templates.
+
+## License
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## Project status
 
-For support and questions:
-- Check the Firebase console for error logs
-- Review the application logs in the browser console
-- Contact the development team for assistance
-
-## 🔄 Version History
-
-- **v1.1.0**: Current version with Verkada integration
-- **v1.0.0**: Initial release with basic inventory management
-
----
-
-**Live Demo**: [webbpulse.com](https://webbpulse.com)
+This repository was open-sourced from a working production codebase. It's provided as-is — issues and PRs will be reviewed on a best-effort basis.
