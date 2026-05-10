@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "1096617861007",
+    "project_id": "webbpulse-inventory-management",
+    "storage_bucket": "webbpulse-inventory-management.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1096617861007:android:e2ec1a741fb648169a75fa",
+        "android_client_info": {
+          "package_name": "com.webbpulse.inventory.android"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1096617861007-ua38bd06arq2fpa4g62ff55k42bl87ii.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.webbpulse.inventory.android",
+            "certificate_hash": "5894815973622949dd356bcda8f7896d7bdff749"
+          }
+        },
+        {
+          "client_id": "1096617861007-ek22rdfust1c288m6cl2fq8649i7albp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_p2XpMAoJJqiTM3PVUFKPKbITun6-XCI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1096617861007-ek22rdfust1c288m6cl2fq8649i7albp.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1096617861007-blbcldik7dlphvm1rh0p7r6p5td1hehr.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.webbpulse.inventory.ios"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

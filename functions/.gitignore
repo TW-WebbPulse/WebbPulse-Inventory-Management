@@ -1,0 +1,6 @@
+*.local
+gcp_key.json
+venv
+__pycache__/
+*.pyc
+sendgrid_api_key.txt

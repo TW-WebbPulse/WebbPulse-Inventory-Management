@@ -1,0 +1,60 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Function to check if the user's token is still valid
+    function hasValidToken() {
+      // Check if revokeTime exists in the metadata and validate the auth_time against it
+      let mostRecentTokenRevokeTime = get(/databases/$(database)/documents/usersMetadata/$(request.auth.uid)).data.mostRecentTokenRevokeTime;
+      return request.auth.token.auth_time > mostRecentTokenRevokeTime;
+    }
+    // Function to check if the user is authenticated and accessing their own data
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    // Function to check if the user is the owner of the document (accessing their own data)
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    // Function to check if the user has a custom auth claim for the organization
+    function hasOrgMemberClaim(orgId) {
+      return request.auth.token["org_member_" + orgId] == true ||
+      request.auth.token["org_admin_" + orgId] == true ||
+      request.auth.token["org_deskstation_" + orgId] == true;
+    }
+    
+    function isEmailVerified() {
+      return request.auth.token.email_verified == true;
+    } 
+
+    // Rule for the metadata collection
+    match /usersMetadata/{userId} {
+      allow read: if isAuthenticated() && isOwner(userId);
+      allow write: if false;  // Disallow any client-side writes
+    }
+    
+    // Rule for the users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated() && hasValidToken() && isOwner(userId) && isEmailVerified();
+      allow write: if false; // Disallow any client-side writes
+    }
+    // Match for the organizations collection
+    match /organizations/{orgId} {
+      allow read: if isAuthenticated() && hasOrgMemberClaim(orgId) && hasValidToken() && isEmailVerified();
+      allow write: if false;
+
+      // Note: in Firestore rules, allow grants from any matching rule are unioned.
+      // The recursive {document=**} match below would otherwise grant org members
+      // read access to sensitiveConfigs, so we gate access by path explicitly.
+      match /{subcollection}/{docId=**} {
+        allow read: if subcollection != 'sensitiveConfigs'
+                    && isAuthenticated()
+                    && hasOrgMemberClaim(orgId)
+                    && hasValidToken()
+                    && isEmailVerified();
+        allow write: if false;
+      }
+    }
+  }
+}

@@ -1,0 +1,187 @@
+---
+alwaysApply: true
+---
+
+# Security Rules
+
+## General Security Principles
+
+### Authentication
+
+- Always require authentication for sensitive operations
+- Verify user identity before granting access
+- Use Firebase Auth tokens for user identification
+- Implement proper session management
+- Handle authentication state changes properly
+
+### Authorization
+
+- Implement role-based access control (RBAC)
+- Check user permissions before operations
+- Use proper user roles (admin, member, etc.)
+- Implement organization-based access control
+- Handle multi-tenant data properly
+
+### Data Validation
+
+- Validate all input data on both client and server
+- Sanitize user inputs
+- Use proper data types and formats
+- Implement input length limits
+- Validate file uploads and attachments
+
+### Firestore Security Rules
+
+### General Rules
+
+- Write comprehensive security rules for all collections
+- Test security rules thoroughly
+- Use proper data validation in rules
+- Implement proper access control
+- Handle sensitive data appropriately
+
+### User Data Protection
+
+- Protect user profile information
+- Implement proper data privacy controls
+- Handle user data deletion properly
+- Use proper data encryption
+- Implement data retention policies
+
+### Organization Data Protection
+
+- Ensure users can only access their organization's data
+- Implement proper organization switching
+- Handle organization membership properly
+- Protect organization settings
+- Implement proper data isolation
+
+### Device Data Protection
+
+- Ensure proper device access control
+- Implement device ownership validation
+- Handle device checkout/checkin security
+- Protect device configuration data
+- Implement proper device audit trails
+
+### API Security
+
+### Firebase Functions Security
+
+- Implement proper authentication in all functions
+- Use rate limiting to prevent abuse
+- Validate all function inputs
+- Handle errors securely
+- Implement proper logging
+
+### External API Security (Verkada)
+
+- Use secure API keys and tokens
+- Implement proper API authentication
+- Use HTTPS for all API communications
+- Handle API errors securely
+- Implement proper API rate limiting
+
+### Client-Side Security
+
+### Flutter App Security
+
+- Implement proper authentication flows
+- Handle sensitive data securely
+- Use secure storage for tokens
+- Implement proper session management
+- Handle offline security properly
+
+### Data Transmission
+
+- Use HTTPS for all communications
+- Implement proper data encryption
+- Handle sensitive data transmission
+- Use secure WebSocket connections
+- Implement proper certificate validation
+
+### Error Handling Security
+
+### Information Disclosure
+
+- Don't expose sensitive information in error messages
+- Use generic error messages for security
+- Log security events properly
+- Handle errors gracefully
+- Implement proper error tracking
+
+### Input Validation
+
+- Validate all user inputs
+- Sanitize data before processing
+- Handle malicious inputs properly
+- Implement proper input length limits
+- Use proper input validation libraries
+
+### Monitoring and Logging
+
+### Security Monitoring
+
+- Monitor for suspicious activities
+- Implement proper audit trails
+- Log security events
+- Monitor API usage patterns
+- Implement alerting for security events
+
+### Compliance
+
+- Follow data protection regulations
+- Implement proper data retention
+- Handle user consent properly
+- Implement data portability
+- Follow privacy best practices
+
+## Specific Project Security Rules
+
+### Authentication Flow
+
+- Implement proper sign-in/sign-up flows
+- Handle email verification properly
+- Implement password reset securely
+- Handle social authentication properly
+- Implement proper session management
+
+### Organization Security
+
+- Ensure users can only access their organizations
+- Implement proper organization creation
+- Handle organization membership securely
+- Protect organization settings
+- Implement proper data isolation
+
+### Device Management Security
+
+- Ensure proper device access control
+- Implement device ownership validation
+- Handle device checkout/checkin securely
+- Protect device configuration
+- Implement proper audit trails
+
+### User Management Security
+
+- Implement proper user role management
+- Handle user permissions securely
+- Protect user profile data
+- Implement proper user deletion
+- Handle user data portability
+
+### Integration Security (Verkada)
+
+- Secure API key management
+- Implement proper API authentication
+- Handle API data securely
+- Implement proper error handling
+- Monitor API usage
+
+### Data Backup and Recovery
+
+- Implement proper data backup
+- Handle data recovery securely
+- Protect backup data
+- Implement proper disaster recovery
+- Test backup and recovery procedures

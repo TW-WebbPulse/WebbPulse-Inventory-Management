@@ -1,0 +1,129 @@
+---
+alwaysApply: true
+---
+
+# Flutter/Dart Coding Rules
+
+## Code Style and Formatting
+
+### General Dart Rules
+
+- Follow Dart style guide: https://dart.dev/guides/language/effective-dart/style
+- Use 2-space indentation (not tabs)
+- Maximum line length: 80 characters
+- Use trailing commas in multi-line collections
+- Prefer `const` constructors when possible
+- Use `final` for variables that won't be reassigned
+
+### Naming Conventions
+
+- Use `lowerCamelCase` for variables, functions, and methods
+- Use `UpperCamelCase` for classes, enums, typedefs, and type parameters
+- Use `snake_case` for file names
+- Use `SCREAMING_SNAKE_CASE` for constants
+- Prefix private identifiers with underscore (`_`)
+
+### File Organization
+
+- One class per file (except for small helper classes)
+- Group imports in this order:
+  1. Dart SDK imports
+  2. Flutter imports
+  3. Third-party package imports
+  4. Local imports (relative paths)
+- Separate import groups with blank lines
+
+### Widget Structure
+
+- Keep widgets small and focused on a single responsibility
+- Extract reusable widgets into separate files
+- Use `StatelessWidget` when possible, only use `StatefulWidget` when necessary
+- Prefer composition over inheritance
+- Use `const` constructors for widgets that don't change
+
+### State Management
+
+- Use Provider pattern for state management (already in use)
+- Keep state as close to where it's used as possible
+- Avoid global state when local state is sufficient
+- Use `ChangeNotifier` for simple state management
+- Consider using `Consumer` widgets to rebuild only necessary parts
+
+### Error Handling
+
+- Use try-catch blocks for operations that might fail
+- Provide meaningful error messages
+- Handle null values explicitly with null-aware operators
+- Use `assert` statements for debugging
+
+### Performance
+
+- Use `const` constructors when possible
+- Avoid rebuilding widgets unnecessarily
+- Use `ListView.builder` for large lists
+- Implement proper disposal in `StatefulWidget`s
+- Use `RepaintBoundary` for complex widgets that don't need frequent updates
+
+### Firebase Integration
+
+- Handle authentication state properly
+- Use proper error handling for Firebase operations
+- Implement loading states for async operations
+- Cache data when appropriate
+- Use proper security rules
+
+### Testing
+
+- Write unit tests for business logic
+- Write widget tests for UI components
+- Use meaningful test names that describe the behavior
+- Mock external dependencies in tests
+- Test error scenarios
+
+## Specific Project Rules
+
+### File Structure
+
+- Follow the existing structure in `lib/src/`
+- Keep authentication-related code in `authed/` and `non_authed/` directories
+- Organize shared components in `shared/` directory
+- Use descriptive file names that indicate the purpose
+
+### Authentication
+
+- Handle authentication state changes properly
+- Implement proper loading states during authentication
+- Use Firebase UI Auth components when possible
+- Handle authentication errors gracefully
+
+### Device Management
+
+- Implement proper CRUD operations for devices
+- Handle device checkout/checkin states
+- Validate device data before saving
+- Implement proper search and filtering
+
+### Organization Management
+
+- Handle organization creation and management
+- Implement proper user roles and permissions
+- Handle organization switching
+- Implement proper member management
+
+### UI/UX Guidelines
+
+- Use Material Design principles
+- Implement responsive design
+- Use consistent spacing and typography
+- Provide proper feedback for user actions
+- Implement proper loading and error states
+- Use appropriate icons and visual hierarchy
+
+### Code Quality
+
+- Write self-documenting code with clear variable and function names
+- Add comments for complex business logic
+- Use proper TypeScript types for all variables
+- Avoid magic numbers and strings
+- Keep functions small and focused
+- Use early returns to reduce nesting

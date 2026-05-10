@@ -1,0 +1,168 @@
+---
+alwaysApply: true
+---
+
+# Firebase Functions/Python Coding Rules
+
+## Code Style and Formatting
+
+### General Python Rules
+
+- Follow PEP 8 style guide: https://www.python.org/dev/peps/pep-0008/
+- Use 4-space indentation (not tabs)
+- Maximum line length: 88 characters (Black formatter default)
+- Use snake_case for variables, functions, and methods
+- Use PascalCase for classes
+- Use UPPER_CASE for constants
+- Use descriptive variable names
+
+### Import Organization
+
+- Group imports in this order:
+  1. Standard library imports
+  2. Third-party imports
+  3. Local application imports
+- Separate import groups with blank lines
+- Use absolute imports when possible
+- Avoid wildcard imports (`from module import *`)
+
+### Function and Class Structure
+
+- Keep functions small and focused on a single responsibility
+- Use type hints for function parameters and return values
+- Add docstrings for all public functions and classes
+- Use meaningful function and variable names
+- Implement proper error handling
+
+### Error Handling
+
+- Use try-except blocks for operations that might fail
+- Provide meaningful error messages
+- Log errors appropriately
+- Use custom exceptions when needed
+- Handle edge cases properly
+
+### Firebase Functions Specific Rules
+
+### Function Structure
+
+- Use proper Firebase Functions decorators (`@functions.https.on_call`, `@functions.https.on_request`, etc.)
+- Implement proper authentication checks
+- Use rate limiting when appropriate
+- Handle CORS properly for HTTP functions
+- Implement proper request validation
+
+### Authentication and Authorization
+
+- Always verify user authentication in callable functions
+- Check user permissions before performing operations
+- Use Firebase Auth tokens for user identification
+- Implement proper role-based access control
+- Handle unauthenticated requests gracefully
+
+### Firestore Operations
+
+- Use batch operations for multiple writes
+- Implement proper transaction handling
+- Use proper indexing for queries
+- Handle Firestore errors appropriately
+- Implement proper data validation
+
+### Security Rules
+
+- Write comprehensive Firestore security rules
+- Test security rules thoroughly
+- Use proper data validation on both client and server
+- Implement proper access control
+- Handle sensitive data appropriately
+
+### Performance
+
+- Use connection pooling for external services
+- Implement proper caching strategies
+- Optimize database queries
+- Use async/await properly
+- Implement proper timeout handling
+
+### Testing
+
+- Write unit tests for all functions
+- Mock external dependencies
+- Test error scenarios
+- Use proper test fixtures
+- Implement integration tests
+
+## Specific Project Rules
+
+### File Organization
+
+- Follow the existing structure in `functions/src/`
+- Organize functions by feature/domain
+- Use descriptive file names
+- Keep related functions together
+- Separate helper functions into utility modules
+
+### Callable Functions
+
+- Implement proper input validation
+- Return consistent response formats
+- Handle errors gracefully
+- Use proper HTTP status codes
+- Implement proper logging
+
+### Triggered Functions
+
+- Handle Firestore triggers properly
+- Implement idempotency for retries
+- Use proper error handling
+- Implement proper logging
+- Handle batch operations correctly
+
+### External Integrations (Verkada)
+
+- Implement proper API error handling
+- Use rate limiting for external APIs
+- Cache external data when appropriate
+- Implement proper retry logic
+- Handle API versioning
+
+### Email and Notifications
+
+- Use SendGrid for email operations
+- Implement proper email templates
+- Handle email delivery failures
+- Use proper email validation
+- Implement email rate limiting
+
+### Data Validation
+
+- Validate all input data
+- Use proper data types
+- Implement proper sanitization
+- Handle edge cases
+- Use consistent validation patterns
+
+### Logging and Monitoring
+
+- Use structured logging
+- Log important events
+- Implement proper error tracking
+- Use Firebase Functions logs
+- Monitor function performance
+
+### Code Quality
+
+- Write self-documenting code
+- Add comments for complex logic
+- Use proper type hints
+- Avoid code duplication
+- Keep functions small and focused
+- Use early returns to reduce nesting
+
+### Environment and Configuration
+
+- Use environment variables for configuration
+- Implement proper secrets management
+- Use different configurations for dev/staging/prod
+- Implement proper feature flags
+- Use proper configuration validation

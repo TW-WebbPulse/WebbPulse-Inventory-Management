@@ -1,0 +1,273 @@
+---
+alwaysApply: true
+---
+
+# Deployment Rules
+
+## General Deployment Principles
+
+### Environment Management
+
+- Use separate environments for development, staging, and production
+- Implement proper environment isolation
+- Use environment-specific configurations
+- Implement proper secrets management
+- Use feature flags for gradual rollouts
+
+### Version Control
+
+- Use semantic versioning
+- Implement proper branching strategies
+- Use meaningful commit messages
+- Implement proper code review processes
+- Use proper release tagging
+
+### CI/CD Pipeline
+
+- Automate build and deployment processes
+- Implement proper testing in CI/CD
+- Use proper deployment strategies
+- Implement rollback procedures
+- Monitor deployment health
+
+## Firebase Deployment
+
+### Firebase Project Setup
+
+- Use separate Firebase projects for each environment
+- Implement proper project configuration
+- Use proper Firebase CLI setup
+- Implement proper service account management
+- Use proper Firebase hosting configuration
+
+### Firestore Deployment
+
+- Implement proper database migrations
+- Use proper indexing strategies
+- Implement proper security rules deployment
+- Handle data migration properly
+- Implement proper backup strategies
+
+### Firebase Functions Deployment
+
+- Implement proper function deployment
+- Use proper function configuration
+- Implement proper environment variables
+- Handle function dependencies properly
+- Implement proper function monitoring
+
+### Firebase Hosting
+
+- Implement proper hosting configuration
+- Use proper caching strategies
+- Implement proper redirects
+- Handle static assets properly
+- Implement proper CDN configuration
+
+## Flutter App Deployment
+
+### Build Configuration
+
+- Use proper build configurations
+- Implement proper signing for releases
+- Use proper app versioning
+- Implement proper build variants
+- Handle platform-specific configurations
+
+### Platform Deployment
+
+### Android Deployment
+
+- Use proper Android signing
+- Implement proper app bundle generation
+- Use proper Play Store deployment
+- Handle Android-specific configurations
+- Implement proper crash reporting
+
+### iOS Deployment
+
+- Use proper iOS signing
+- Implement proper app store deployment
+- Handle iOS-specific configurations
+- Implement proper provisioning profiles
+- Use proper TestFlight deployment
+
+### Web Deployment
+
+- Implement proper web build optimization
+- Use proper web hosting configuration
+- Handle web-specific configurations
+- Implement proper PWA configuration
+- Use proper web analytics
+
+## Deployment Strategies
+
+### Blue-Green Deployment
+
+- Implement zero-downtime deployments
+- Use proper traffic switching
+- Implement proper rollback procedures
+- Monitor deployment health
+- Handle database migrations properly
+
+### Canary Deployment
+
+- Implement gradual rollouts
+- Use proper traffic splitting
+- Monitor deployment metrics
+- Implement proper rollback triggers
+- Handle feature flags properly
+
+### Rolling Deployment
+
+- Implement rolling updates
+- Use proper health checks
+- Monitor deployment progress
+- Handle deployment failures
+- Implement proper rollback procedures
+
+## Monitoring and Observability
+
+### Application Monitoring
+
+- Implement proper logging
+- Use proper error tracking
+- Monitor application performance
+- Implement proper alerting
+- Use proper metrics collection
+
+### Infrastructure Monitoring
+
+- Monitor Firebase services
+- Track resource usage
+- Monitor costs
+- Implement proper alerting
+- Use proper dashboards
+
+### User Experience Monitoring
+
+- Monitor app performance
+- Track user engagement
+- Monitor crash rates
+- Implement proper analytics
+- Use proper user feedback collection
+
+## Security in Deployment
+
+### Secrets Management
+
+- Use proper secrets management
+- Implement proper key rotation
+- Handle sensitive configuration
+- Use proper encryption
+- Implement proper access control
+
+### Access Control
+
+- Implement proper deployment permissions
+- Use proper service accounts
+- Handle deployment authentication
+- Implement proper audit trails
+- Use proper role-based access
+
+### Security Scanning
+
+- Implement security scanning
+- Use proper vulnerability assessment
+- Handle security updates
+- Implement proper security monitoring
+- Use proper security testing
+
+## Rollback Procedures
+
+### Automated Rollback
+
+- Implement automatic rollback triggers
+- Use proper health checks
+- Monitor deployment metrics
+- Handle rollback failures
+- Implement proper rollback testing
+
+### Manual Rollback
+
+- Document rollback procedures
+- Use proper rollback tools
+- Handle data consistency
+- Implement proper communication
+- Use proper rollback verification
+
+## Documentation
+
+### Deployment Documentation
+
+- Document deployment procedures
+- Document configuration management
+- Document troubleshooting guides
+- Document rollback procedures
+- Document monitoring procedures
+
+### Runbooks
+
+- Create deployment runbooks
+- Document common issues
+- Create troubleshooting guides
+- Document escalation procedures
+- Create maintenance procedures
+
+## Specific Project Deployment Rules
+
+### Environment Configuration
+
+- Use proper Firebase project configuration
+- Implement proper environment variables
+- Handle configuration differences
+- Use proper secrets management
+- Implement proper feature flags
+
+### Database Deployment
+
+- Handle Firestore migrations
+- Implement proper data seeding
+- Handle schema changes
+- Implement proper backup procedures
+- Use proper data validation
+
+### Function Deployment
+
+- Deploy Firebase Functions properly
+- Handle function dependencies
+- Implement proper function monitoring
+- Use proper function configuration
+- Handle function scaling
+
+### App Deployment
+
+- Deploy Flutter app properly
+- Handle platform-specific deployments
+- Implement proper app signing
+- Use proper app store deployment
+- Handle app updates
+
+### Integration Deployment
+
+- Deploy Verkada integration properly
+- Handle API configuration
+- Implement proper integration monitoring
+- Use proper error handling
+- Handle integration updates
+
+### Monitoring Setup
+
+- Set up proper application monitoring
+- Implement proper error tracking
+- Use proper performance monitoring
+- Implement proper user analytics
+- Set up proper alerting
+
+### Security Deployment
+
+- Deploy security rules properly
+- Implement proper authentication
+- Handle authorization properly
+- Use proper data encryption
+- Implement proper audit trails

@@ -1,0 +1,251 @@
+name: Deploy on Merge to Master
+
+on:
+  push:
+    branches:
+      - master # Trigger on push to the main branch
+
+jobs:
+  build_and_deploy_backend_and_web:
+    name: Build and Deploy Backend and Web
+    runs-on: ubuntu-latest
+    env:
+      SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+      FIREBASE_APPLICATION_CREDENTIALS: ${{ secrets.FIREBASE_APPLICATION_CREDENTIALS }}
+      GOOGLE_APPLICATION_CREDENTIALS: ./gcp_key.json
+      FLUTTER_VERSION: 3.29.3
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@main
+
+      - name: Set Build Number
+        run: |
+          cd flutter
+          # Extract the current version from pubspec.yaml without any existing build number
+          version_line=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+
+          # Use the GitHub Actions run number as the build number
+          new_build_number="${{ github.run_number }}"
+
+          # Construct the new version line
+          new_version="${version_line}+${new_build_number}"
+
+          # Update the pubspec.yaml with the new version line, handling macOS and Linux differences
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            sed -i '' "s/^version: .*/version: $new_version/" pubspec.yaml
+          else
+            sed -i "s/^version: .*/version: $new_version/" pubspec.yaml
+          fi
+
+          # Output the new version for logging purposes
+          echo "New version: $new_version"
+
+        #Set up gcp keys
+      - name: Set up api keys
+        run: |
+          echo "$FIREBASE_APPLICATION_CREDENTIALS" > gcp_key.json
+          echo "$FIREBASE_APPLICATION_CREDENTIALS" > functions/gcp_key.json
+          echo "$SENDGRID_API_KEY" > functions/sendgrid_api_key.txt
+        #setup python
+      - name: Set up python
+        uses: actions/setup-python@main
+        with:
+          python-version: "3.13"
+
+      #setup firebase cli
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      #Setup flutter
+      - name: Set up Flutter
+        uses: subosito/flutter-action@main
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+
+      - name: Install flutter dependencies
+        run: |
+          cd flutter 
+          flutter pub get
+      #deploy backend and web
+      - name: Deploy Web Hosting, Functions, and Firestore Rules
+        run: |
+          python -m venv ./functions/venv 
+          source ./functions/venv/bin/activate
+          pip install -r ./functions/requirements.txt
+          deactivate
+          firebase experiments:enable webframeworks
+          firebase deploy --only hosting,functions,firestore:rules --force
+  build_and_deploy_android_app_internal:
+    name: Build and Deploy Internal Android App
+    runs-on: ubuntu-latest
+    env:
+      JAVA_VERSION: 17
+      FLUTTER_VERSION: 3.29.3
+      AAB_PATH: flutter/build/app/outputs/bundle/release/app-release.aab
+      FIREBASE_APPLICATION_CREDENTIALS: ${{ secrets.FIREBASE_APPLICATION_CREDENTIALS }}
+      GOOGLE_APPLICATION_CREDENTIALS: gcp_key.json
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@main
+
+      - name: Set Build Number
+        run: |
+          cd flutter
+          # Extract the current version from pubspec.yaml without any existing build number
+          version_line=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+
+          # Use the GitHub Actions run number as the build number
+          new_build_number="${{ github.run_number }}"
+
+          # Construct the new version line
+          new_version="${version_line}+${new_build_number}"
+
+          # Update the pubspec.yaml with the new version line, handling macOS and Linux differences
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            sed -i '' "s/^version: .*/version: $new_version/" pubspec.yaml
+          else
+            sed -i "s/^version: .*/version: $new_version/" pubspec.yaml
+          fi
+
+          # Output the new version for logging purposes
+          echo "New version: $new_version"
+
+      - name: Set up gcp key
+        run: |
+          echo "$FIREBASE_APPLICATION_CREDENTIALS" > gcp_key.json
+      #Setup flutter
+      - name: Set up Flutter
+        uses: subosito/flutter-action@main
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+
+      - name: Install flutter dependencies
+        run: |
+          cd flutter 
+          flutter pub get
+      #setup java for android build
+      - name: Set Up Java
+        uses: actions/setup-java@main
+        with:
+          distribution: "oracle"
+          java-version: ${{ env.JAVA_VERSION }}
+
+      #Setup Keystore for signing
+      - name: Decode Keystore
+        run: |
+          cd flutter
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore.jks
+      - name: Create key.properties
+        run: |
+          cd flutter
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          echo "storeFile=keystore.jks" >> android/key.properties
+      #build and release
+      - name: Build Android App
+        run: |
+          cd flutter
+          flutter build appbundle
+      - name: Release app to internal track
+        uses: r0adkll/upload-google-play@master
+        with:
+          serviceAccountJsonPlainText: ${{ env.FIREBASE_APPLICATION_CREDENTIALS }}
+          packageName: com.webbpulse.inventory.android
+          releaseFiles: flutter/build/app/outputs/bundle/release/app-release.aab
+          releaseName: Build ${{ github.run_number }}
+          track: internal
+          status: draft # Set to 'completed' to release the app to the internal track, probably not going to work until the app is no longer considered a draft
+
+  build_and_deploy_ios_testflight_app:
+    name: Build and Deploy Testflight IOS App
+    runs-on: macos-15
+    env:
+      FLUTTER_VERSION: 3.29.3
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@main
+
+      - name: Set Build Number
+        run: |
+          cd flutter
+          # Extract the current version from pubspec.yaml without any existing build number
+          version_line=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+
+          # Use the GitHub Actions run number as the build number
+          new_build_number="${{ github.run_number }}"
+
+          # Construct the new version line
+          new_version="${version_line}+${new_build_number}"
+
+          # Update the pubspec.yaml with the new version line, handling macOS and Linux differences
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            sed -i '' "s/^version: .*/version: $new_version/" pubspec.yaml
+          else
+            sed -i "s/^version: .*/version: $new_version/" pubspec.yaml
+          fi
+
+          # Output the new version for logging purposes
+          echo "New version: $new_version"
+
+      #Setup flutter
+      - name: Set up Flutter
+        uses: subosito/flutter-action@main
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+
+      #Install Flutter dependencies
+      - name: Install flutter dependencies
+        run: |
+          cd flutter 
+          flutter clean
+          flutter pub get
+          flutter doctor -v
+          flutter build ios --no-codesign #fake run to fetch dependancies and update xcode configs
+      - name: Install the Apple certificate and provisioning profile
+        env:
+          APPLE_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_BASE64 }}
+          APPLE_P12_PASSWORD: ${{ secrets.APPLE_P12_PASSWORD }}
+          APPLE_PROVISIONING_PROFILE_MOBILEPROVISION: ${{ secrets.APPLE_PROVISIONING_PROFILE_MOBILEPROVISION }} #in base64, i labelled it dumb
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          # create variables
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          # import certificate and provisioning profile from secrets
+          echo -n "$APPLE_DISTRIBUTION_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+          echo -n "$APPLE_PROVISIONING_PROFILE_MOBILEPROVISION" | base64 --decode -o $PP_PATH
+          # create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          # import certificate to keychain
+          security import $CERTIFICATE_PATH -P "$APPLE_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+          # apply provisioning profile
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
+
+      #build and release via xcode to support manual signing
+      - name: Build The Archive
+        run: |
+          cd flutter
+          xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -sdk iphoneos -configuration Release archive -archivePath build/ios/archive/Runner.xcarchive
+      - name: Export the archive to IPA
+        run: |
+          cd flutter
+          xcodebuild -exportArchive -archivePath build/ios/archive/Runner.xcarchive -exportOptionsPlist ios/exportOptions.plist -exportPath ipa
+      - name: Upload to App Store
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+        run: |
+          cd flutter
+          xcrun altool --upload-app -f ipa/webbpulse_inventory_management.ipa -t ios -u "$APPLE_ID" -p "$APPLE_APP_PASSWORD"
